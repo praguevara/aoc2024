@@ -4,11 +4,8 @@ fn parse_lists(input: &str) -> (Vec<u32>, Vec<u32>) {
     input
         .lines()
         .map(|l| {
-            let ns = l
-                .split_whitespace()
-                .map(|w| w.parse::<u32>().unwrap())
-                .collect::<Vec<_>>();
-            (ns[0], ns[1])
+            let mut ns = l.split_whitespace().map(|w| w.parse::<u32>().unwrap());
+            (ns.next().unwrap(), ns.next().unwrap())
         })
         .collect()
 }
@@ -30,10 +27,14 @@ pub fn part_one(input: &str) -> Option<u32> {
 
 pub fn part_two(input: &str) -> Option<u32> {
     let (l1, l2) = parse_lists(input);
-    let mut score = 0;
-    for x in &l1 {
-        score += x * l2.iter().filter(|i| *i == x).count() as u32;
-    }
+    let l2_index: std::collections::HashMap<u32, u32> =
+        l2.iter()
+            .fold(std::collections::HashMap::new(), |mut acc, x| {
+                acc.entry(*x).and_modify(|e| *e += 1).or_insert(1);
+                acc
+            });
+
+    let score = l1.iter().map(|x| x * l2_index.get(x).unwrap_or(&0)).sum();
     Some(score)
 }
 
