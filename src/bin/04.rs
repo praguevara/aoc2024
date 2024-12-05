@@ -214,14 +214,14 @@ fn count_xmas_test() {
 
 pub fn part_one(input: &str) -> Option<u32> {
     let board = parse_board(input);
-    let r = dbg!(count_xmas(board.iter_rows()));
-    let rr = dbg!(count_xmas(board.iter_rows_rev()));
-    let c = dbg!(count_xmas(board.iter_cols()));
-    let cr = dbg!(count_xmas(board.iter_cols_rev()));
-    let dr = dbg!(count_xmas(board.iter_diag_dr()));
-    let dl = dbg!(count_xmas(board.iter_diag_dl()));
-    let ur = dbg!(count_xmas(board.iter_diag_ur()));
-    let ul = dbg!(count_xmas(board.iter_diag_ul()));
+    let r = count_xmas(board.iter_rows());
+    let rr = count_xmas(board.iter_rows_rev());
+    let c = count_xmas(board.iter_cols());
+    let cr = count_xmas(board.iter_cols_rev());
+    let dr = count_xmas(board.iter_diag_dr());
+    let dl = count_xmas(board.iter_diag_dl());
+    let ur = count_xmas(board.iter_diag_ur());
+    let ul = count_xmas(board.iter_diag_ul());
     Some((r + rr + c + cr + dr + dl + ur + ul) as u32)
 }
 
