@@ -1,6 +1,6 @@
 advent_of_code::solution!(5);
 
-type Rules = Vec<(u32, u32)>;
+type Rules = std::collections::HashMap<u32, Vec<u32>>;
 
 type Update = Vec<u32>;
 
@@ -16,9 +16,17 @@ fn parse_input(input: &str) -> Input {
             .lines()
             .map(|l| {
                 let s = l.split_once('|').unwrap();
-                (s.0.parse().unwrap(), s.1.parse().unwrap())
+                (s.0.parse::<u32>().unwrap(), s.1.parse::<u32>().unwrap())
             })
-            .collect(),
+            .fold(
+                std::collections::HashMap::new(),
+                |mut acc, (before, after)| {
+                    acc.entry(before)
+                        .and_modify(|v| v.push(after))
+                        .or_insert(vec![after]);
+                    acc
+                },
+            ),
         updates: updates
             .lines()
             .map(|l| l.split(',').map(|n| n.parse().unwrap()).collect())
@@ -28,7 +36,7 @@ fn parse_input(input: &str) -> Input {
 
 fn violates_rule(rules: &Rules, update: &Update) -> Option<(usize, usize)> {
     for (i, page) in update.iter().enumerate() {
-        for (_, after) in rules.iter().filter(|(b, _)| b == page) {
+        for after in rules.get(page).unwrap_or(&vec![]) {
             if let Some(after_pos) = update[0..i].iter().position(|x| x == after) {
                 return Some((i, after_pos));
             }
