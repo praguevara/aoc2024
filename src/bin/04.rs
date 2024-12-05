@@ -129,6 +129,26 @@ impl Board {
             }),
         )
     }
+
+    fn iter_convolutions(&self) -> impl Iterator<Item = [[u8; 3]; 3]> + '_ {
+        (0..(self.rows - 2)).flat_map(move |r| {
+            (0..(self.cols - 2)).map(move |c| {
+                [
+                    [self.data[r][c], self.data[r][c + 1], self.data[r][c + 2]],
+                    [
+                        self.data[r + 1][c],
+                        self.data[r + 1][c + 1],
+                        self.data[r + 1][c + 2],
+                    ],
+                    [
+                        self.data[r + 2][c],
+                        self.data[r + 2][c + 1],
+                        self.data[r + 2][c + 2],
+                    ],
+                ]
+            })
+        })
+    }
 }
 
 struct BoardIter<'a> {
@@ -205,8 +225,26 @@ pub fn part_one(input: &str) -> Option<u32> {
     Some((r + rr + c + cr + dr + dl + ur + ul) as u32)
 }
 
+fn is_xmas_convolution(conv: &[[u8; 3]; 3]) -> bool {
+    if conv[1][1] != b'A' {
+        return false;
+    }
+
+    if !matches!(&[conv[0][0], conv[2][2]], b"MS" | b"SM") {
+        return false;
+    }
+
+    if !matches!(&[conv[2][0], conv[0][2]], b"MS" | b"SM") {
+        return false;
+    }
+
+    true
+}
+
 pub fn part_two(input: &str) -> Option<u32> {
-    None
+    let board = parse_board(input);
+    let convolutions = board.iter_convolutions();
+    Some(convolutions.filter(is_xmas_convolution).count() as u32)
 }
 
 #[cfg(test)]
@@ -226,6 +264,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(9));
     }
 }
