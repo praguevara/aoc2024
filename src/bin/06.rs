@@ -116,38 +116,51 @@ pub fn part_one(input: &str) -> Option<u32> {
 pub fn part_two(input: &str) -> Option<u32> {
     let (mut map, starting_position, starting_orientation) = parse_input(input);
 
-    let mut loops_found = 0;
-    for i in 0..map.rows() {
-        for j in 0..map.cols() {
-            let mut position = starting_position;
-            let mut orientation = starting_orientation;
+    let mut position = starting_position;
+    let mut orientation = starting_orientation;
+    let mut visited = std::collections::HashSet::new();
+    while is_in_map(&map, position) {
+        visited.insert(position);
+        let next_position = next_position(&position, orientation);
 
-            if map.is_obstructed((i as i32, j as i32)) {
-                continue;
-            }
-
-            map.obstructions[i][j] = true;
-
-            let mut visited = std::collections::HashSet::new();
-            while is_in_map(&map, position) {
-                if visited.contains(&(position, orientation)) {
-                    loops_found += 1;
-                    break;
-                } else {
-                    visited.insert((position, orientation));
-                }
-
-                let next_position = next_position(&position, orientation);
-
-                if map.is_obstructed(next_position) {
-                    orientation = orientation.rotate_clockwise();
-                } else {
-                    position = next_position;
-                }
-            }
-
-            map.obstructions[i][j] = false;
+        if map.is_obstructed(next_position) {
+            orientation = orientation.rotate_clockwise();
+        } else {
+            position = next_position;
         }
+    }
+
+    let mut loops_found = 0;
+    let mut visited_ori = std::collections::HashSet::new();
+    for (i, j) in visited {
+        let mut position = starting_position;
+        let mut orientation = starting_orientation;
+        visited_ori.clear();
+
+        if map.is_obstructed((i, j)) {
+            continue;
+        }
+
+        map.obstructions[i as usize][j as usize] = true;
+
+        while is_in_map(&map, position) {
+            if visited_ori.contains(&(position, orientation)) {
+                loops_found += 1;
+                break;
+            } else {
+                visited_ori.insert((position, orientation));
+            }
+
+            let next_position = next_position(&position, orientation);
+
+            if map.is_obstructed(next_position) {
+                orientation = orientation.rotate_clockwise();
+            } else {
+                position = next_position;
+            }
+        }
+
+        map.obstructions[i as usize][j as usize] = false;
     }
 
     Some(loops_found)
