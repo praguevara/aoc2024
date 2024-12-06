@@ -37,10 +37,19 @@ impl Map {
     }
 
     fn is_obstructed(&self, (r, c): Position) -> bool {
+        self.get((r, c)).copied().unwrap_or(false)
+    }
+
+    fn get(&self, (r, c): Position) -> Option<&bool> {
         self.obstructions
             .get(r as usize)
-            .map(|row| row.get(c as usize).copied().unwrap_or(false))
-            .unwrap_or(false)
+            .and_then(|row| row.get(c as usize))
+    }
+
+    fn get_mut(&mut self, (r, c): Position) -> Option<&mut bool> {
+        self.obstructions
+            .get_mut(r as usize)
+            .and_then(|row| row.get_mut(c as usize))
     }
 }
 
@@ -119,8 +128,10 @@ pub fn part_two(input: &str) -> Option<u32> {
     let mut position = starting_position;
     let mut orientation = starting_orientation;
     let mut visited = std::collections::HashSet::new();
+    let mut steps = vec![];
     while is_in_map(&map, position) {
         visited.insert(position);
+        steps.push((position, orientation));
         let next_position = next_position(&position, orientation);
 
         if map.is_obstructed(next_position) {
@@ -132,16 +143,19 @@ pub fn part_two(input: &str) -> Option<u32> {
 
     let mut loops_found = 0;
     let mut visited_ori = std::collections::HashSet::new();
-    for (i, j) in visited {
-        let mut position = starting_position;
-        let mut orientation = starting_orientation;
-        visited_ori.clear();
+    for i in 1..steps.len() {
+        let (p, _) = steps[i];
 
-        if map.is_obstructed((i, j)) {
+        if map.is_obstructed(p) || !visited.contains(&p) {
             continue;
         }
 
-        map.obstructions[i as usize][j as usize] = true;
+        visited.remove(&p);
+
+        let (mut position, mut orientation) = steps[i - 1];
+        visited_ori.clear();
+
+        *map.get_mut(p).unwrap() = true;
 
         while is_in_map(&map, position) {
             if visited_ori.contains(&(position, orientation)) {
@@ -160,7 +174,7 @@ pub fn part_two(input: &str) -> Option<u32> {
             }
         }
 
-        map.obstructions[i as usize][j as usize] = false;
+        *map.get_mut(p).unwrap() = false;
     }
 
     Some(loops_found)
